@@ -41,17 +41,16 @@ class TwigResponder extends AbstractResponder
 	public function __invoke()
 	{
 		if (!$this->path) {
-			$this->path = $this->request->getUri()->getPath();
+			if (substr($this->path, -1) == '/') {
+				$this->path = '@pages' . $this->request->getUri()->getPath() . 'index.html';
+			} else {
+				$this->path = '@pages' . $this->request->getUri()->getPath() . '.html';
+			}
 		}
 
-		if (substr($this->path, -1) == '/') {
-			$template = '@pages' . $this->path . 'index.html';
-		} else {
-			$template = '@pages' . $this->path . '.html';
-		}
 
 		try {
-			$template  = $this->twig->load($template);
+			$template  = $this->twig->load($this->path);
 			$byte_size = $this->stream->write($template->render($this->data));
 
 			return $this->response->withStatus(200)->withBody($this->stream);
