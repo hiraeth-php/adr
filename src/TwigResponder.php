@@ -51,13 +51,15 @@ class TwigResponder extends AbstractResponder
 		}
 
 		try {
-			$template  = $this->twig->load($this->path);
-			$byte_size = $this->stream->write($template->render($this->data));
-
-			return $this->response->withStatus(200)->withBody($this->stream);
+			$template = $this->twig->load($this->path);
 
 		} catch (\Twig\Error\LoaderError $e) {
 			return $this->response->withStatus(404);
 		}
+
+		$this->stream->write($template->render($this->data));
+
+		return $this->response->withStatus(200)->withBody($this->stream);
 	}
 }
+
