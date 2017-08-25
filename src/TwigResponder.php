@@ -6,6 +6,7 @@ use Journey\Router as Router;
 use Twig\Environment as Twig;
 use Psr\Http\Message\StreamInterface as Stream;
 use Psr\Http\Message\ResponseInterface as Response;
+use Hiraeth;
 
 /**
  *
@@ -27,11 +28,12 @@ class TwigResponder extends AbstractResponder
 	/**
 	 *
 	 */
-	public function __construct(Response $response, Stream $stream, Twig $twig)
+	public function __construct(Hiraeth\Application $app, Response $response, Stream $stream, Twig $twig)
 	{
-		parent::__construct($response, $stream);
-
+		$this->app  = $app;
 		$this->twig = $twig;
+
+		parent::__construct($response, $stream);
 	}
 
 
@@ -54,6 +56,10 @@ class TwigResponder extends AbstractResponder
 			$template = $this->twig->load($this->path);
 
 		} catch (\Twig\Error\LoaderError $e) {
+			if ($this->app->getEnvironment('DEBUG')) {
+				throw $e;
+			}
+
 			return $this->response->withStatus(404);
 		}
 
