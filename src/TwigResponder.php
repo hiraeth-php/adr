@@ -65,7 +65,9 @@ class TwigResponder extends AbstractResponder
 
 		$this->stream->write($template->render($this->data));
 
-		return $this->response->withStatus(200)->withBody($this->stream);
+		return $this->response
+			->withStatus(200)
+			->withHeader('Content-Type', 'text/html; charset=utf-8')
+			->withBody($this->stream);
 	}
 }
-
