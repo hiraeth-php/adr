@@ -42,13 +42,17 @@ class TwigResponder extends AbstractResponder
 	 */
 	public function __invoke()
 	{
+		$template = NULL;
+
 		if (!$this->path) {
 			$request_path = $this->request->getUri()->getPath();
 
 			if (substr($request_path, -1) == '/') {
 				$this->path = '@pages' . $request_path . 'index.html';
+				$alt_path   = substr($request_path, 0, -1);
 			} else {
 				$this->path = '@pages' . $request_path . '.html';
+				$alt_path   = $request_path . '/';
 			}
 		}
 
@@ -59,8 +63,24 @@ class TwigResponder extends AbstractResponder
 			if ($this->app->getEnvironment('DEBUG')) {
 				throw $e;
 			}
+		}
 
-			return $this->response->withStatus(404);
+		if (!$template) {
+			if (substr($alt_path, -1) == '/') {
+				$this->path = '@pages' . $alt_path . 'index.html';
+			} else {
+				$this->path = '@pages' . $alt_path . '.html';
+			}
+
+			try {
+				$template = $this->twig->load($this->path);
+				$redirect = $this->request->getURI()->withPath($alt_path);
+
+				return $this->response->withStatus(301)->withHeader('Location', $redirect);
+
+			} catch (\Twig\Error\LoaderError $e) {
+				return $this->response->withStatus(404);
+			}
 		}
 
 		$this->stream->write($template->render($this->data));
